@@ -1,0 +1,1 @@
+/mnt/coding/zkp/paper/target/debug/arkworks_zk_aggregate: /mnt/coding/zkp/paper/src/child.rs /mnt/coding/zkp/paper/src/main.rs /mnt/coding/zkp/paper/src/master.rs /mnt/coding/zkp/paper/src/proof.rs /mnt/coding/zkp/paper/src/utils.rs /mnt/coding/zkp/paper/src/verify.rs
