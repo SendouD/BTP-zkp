@@ -1,6 +1,6 @@
 
 [package]
-name = "arkworks_zk_aggregate"
+name = "zk_agg"
 version = "0.1.0"
 edition = "2021"
 
