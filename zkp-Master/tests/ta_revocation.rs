@@ -1,6 +1,6 @@
 use ark_bn254::{G1Projective, G2Projective, Fr};
 use ark_std::rand::{rngs::StdRng, SeedableRng};
-use zk_agg::{utils, master, child, proof, verify};
+use zk_master::{utils, master, child, proof, verify};
 
 fn setup() -> (master::MasterKey, Vec<Fr>, Vec<G1Projective>, String) {
     let mut rng = StdRng::seed_from_u64(42u64);

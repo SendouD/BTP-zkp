@@ -31,10 +31,10 @@ fn main() {
     }
     let mac = "F2:DC:55:DE:FB:A2";
     // 3. Generate single proofs ΠT,λ = h^{sk_{T,λ}}
-    let h=utils::hash_to_g1(mac);
+    let h = utils::hash_to_g1(mac);
     let mut proofs: Vec<G2Projective> = Vec::new();
     for sk in &child_sks {
-        proofs.push(proof::single_proof(sk,&h));
+        proofs.push(proof::single_proof(sk, &h));
     }
 
     // 4. Aggregate proofs by summing exponents and computing h^{sum}

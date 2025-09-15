@@ -1,0 +1,13 @@
+
+[package]
+name = "zk_master"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ark-std = "0.4"
+ark-ff = "0.4"
+ark-ec = "0.4"
+ark-bn254 = "0.4"
+sha2 = "0.10"
+rand = "0.8"
