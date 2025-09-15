@@ -1,0 +1,13 @@
+crate_name,n_companies,duration_ms
+zkp-master,5,70
+zkp-master,10,108
+zkp-master,20,183
+zkp-master,50,407
+zkp-agg,5,39
+zkp-agg,10,43
+zkp-agg,20,56
+zkp-agg,50,86
+zkp-base,5,132
+zkp-base,10,294
+zkp-base,20,634
+zkp-base,50,1604

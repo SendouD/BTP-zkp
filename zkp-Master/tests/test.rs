@@ -10,14 +10,20 @@ fn setup() -> (master::MasterKey, String) {
     let mac = "F2:DC:55:DE:FB:A2".to_string();
     (ta, mac)
 }
-fn log_time(crate_name: &str, duration: std::time::Duration) {
+fn log_time(crate_name: &str,n: usize, duration: std::time::Duration) {
+        let file_path = "../bench_results.csv";
+      let file_exists = std::path::Path::new(file_path).exists();
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("../bench_results.csv")
+        .open(file_path)
         .unwrap();
 
-    writeln!(file, "{},{}", crate_name, duration.as_millis()).unwrap();
+     if !file_exists {
+        writeln!(file, "crate_name,n_companies,duration_ms").unwrap();
+    }
+
+    writeln!(file, "{},{},{}", crate_name, n, duration.as_millis()).unwrap();
 }
 fn generate_companies(n: usize) -> Vec<String> {
     let mut rng = StdRng::seed_from_u64(42); // local RNG
@@ -31,15 +37,18 @@ fn generate_companies(n: usize) -> Vec<String> {
 }
 #[test]
 fn test_process_time_excl_master() {
+    let n_values = vec![5, 10, 20, 50];
+    for &n in &n_values {
+ 
     let (ta, mac) = setup();
     let version: u64 = 1;
-    let n = 10; // number of companies
     let labels = generate_companies(n);
 
     // start measuring after master is ready
 
-    let start = Instant::now();
+    let h: ark_bn254::G1Projective = utils::hash_to_g1(&mac);
     // --- Child key derivation ---
+    let start = Instant::now();
     let mut child_sks = Vec::new();
     let mut child_pks = Vec::new();
     for lab in &labels {
@@ -49,7 +58,7 @@ fn test_process_time_excl_master() {
     }
 
     // --- Proof generation ---
-    let h: ark_bn254::G1Projective = utils::hash_to_g1(&mac);
+    
     let mut proofs: Vec<ark_bn254::G1Projective> = Vec::new();
     for sk in &child_sks {
         proofs.push(proof::single_proof(sk, &h));
@@ -63,7 +72,7 @@ fn test_process_time_excl_master() {
     let result = verify::verify(&h, &agg_proof, &agg_pk);
 
     let duration = start.elapsed();
-    log_time("zkp-master", duration);
+    log_time("zkp-master", n,duration);
 
     println!("\n== Process Timing Report ==");
     println!("Labels: {:?}", labels);
@@ -71,4 +80,5 @@ fn test_process_time_excl_master() {
     println!("Total time (child keygen + proof gen + aggregation + verification): {:?}", duration);
 
     assert!(result);
+ }
 }

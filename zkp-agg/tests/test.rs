@@ -1,24 +1,24 @@
 use ark_std::rand::Rng;
 use zkp_agg::*; // assumes your crate is named zkp_base in Cargo.toml
 use ark_std::rand::{rngs::StdRng, SeedableRng};
-use std::path::PathBuf;
 use std::time::Instant;
 use std::fs::OpenOptions;
 use std::io::Write;
-fn log_time(crate_name: &str, duration: std::time::Duration) {
-    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.pop(); // go up one level to the workspace root
-    path.push("bench_results.csv");
-
+fn log_time(crate_name: &str,n: usize, duration: std::time::Duration) {
+        let file_path = "../bench_results.csv";
+      let file_exists = std::path::Path::new(file_path).exists();
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("../bench_results.csv")
+        .open(file_path)
         .unwrap();
 
-    writeln!(file, "{},{}", crate_name, duration.as_millis()).unwrap();
-}
+     if !file_exists {
+        writeln!(file, "crate_name,n_companies,duration_ms").unwrap();
+    }
 
+    writeln!(file, "{},{},{}", crate_name, n, duration.as_millis()).unwrap();
+}
 fn generate_companies(n: usize) -> Vec<String> {
     let mut rng = StdRng::seed_from_u64(42); // local RNG
     (0..n)
@@ -31,8 +31,9 @@ fn generate_companies(n: usize) -> Vec<String> {
 }
 #[test]
 fn protocol_timing_excluding_setup() {
+        let n_values = vec![5, 10, 20, 50];
+    for &n in &n_values {
     let mac = "F2:DC:55:DE:FB:A2";
-    let n = 10; // number of companies
     let companies = generate_companies(n);
     let mut rng = StdRng::seed_from_u64(42);
 
@@ -55,9 +56,10 @@ fn protocol_timing_excluding_setup() {
     let verify_time = verify_zkp(&h, &sigma_agg, &pk_agg);
 
     let total_time = start.elapsed();
-    log_time("zkp-agg", total_time);
+    log_time("zkp-agg", n,total_time);
 
     println!("\n== Protocol Timing Report (excl. key setup) ==");
     println!("Verification time: {:?}", verify_time);
     println!("Total protocol time (ZKP gen + aggregation + verification): {:?}", total_time);
+}
 }

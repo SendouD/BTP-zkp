@@ -3,14 +3,20 @@ use zkp_base::*; // re-use your crate’s public API
 use std::{fs::OpenOptions, time::{Duration, Instant}};
 use std::io::Write;
 
-fn log_time(crate_name: &str, duration: std::time::Duration) {
+fn log_time(crate_name: &str,n: usize, duration: std::time::Duration) {
+        let file_path = "../bench_results.csv";
+      let file_exists = std::path::Path::new(file_path).exists();
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("../bench_results.csv")
+        .open(file_path)
         .unwrap();
 
-    writeln!(file, "{},{}", crate_name, duration.as_millis()).unwrap();
+     if !file_exists {
+        writeln!(file, "crate_name,n_companies,duration_ms").unwrap();
+    }
+
+    writeln!(file, "{},{},{}", crate_name, n, duration.as_millis()).unwrap();
 }
 fn generate_companies(n: usize) -> Vec<String> {
     let mut rng = StdRng::seed_from_u64(42); // local RNG
@@ -24,8 +30,9 @@ fn generate_companies(n: usize) -> Vec<String> {
 }
 #[test]
 fn protocol_timing() {
+        let n_values = vec![5, 10, 20, 50];
+    for &n in &n_values {
     let mac = "F2:DC:55:DE:FB:A2";
-    let n = 10; // number of companies
     let companies = generate_companies(n);
     // example: revoke the first one
     let revoked = &companies[0];
@@ -60,9 +67,10 @@ fn protocol_timing() {
     }
 
     let total_duration = start.elapsed();
-    log_time("zkp-base", total_duration);
+    log_time("zkp-base", n,total_duration);
     println!("\n== Protocol Timing Report ==");
     println!("Total protocol runtime (excl. setup): {:.6?}", total_duration);
     println!("Total verification time: {:.6?}", total_verification_time);
     println!("All verifications successful: {}", all_verified);
+}
 }
