@@ -1,5 +1,5 @@
-use ark_bn254::{G2Projective};
 use ark_std::rand::{rngs::StdRng, SeedableRng};
+use rand::Rng;
 use zk_master::{utils, master, child, proof, verify};
 use std::{fs::OpenOptions, time::Instant};
 use std::io::Write;
@@ -14,19 +14,31 @@ fn log_time(crate_name: &str, duration: std::time::Duration) {
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("bench_results.csv")
+        .open("../bench_results.csv")
         .unwrap();
 
     writeln!(file, "{},{}", crate_name, duration.as_millis()).unwrap();
+}
+fn generate_companies(n: usize) -> Vec<String> {
+    let mut rng = StdRng::seed_from_u64(42); // local RNG
+    (0..n)
+        .map(|i| {
+            // random letter A–Z
+            let c = (b'A' + (rng.gen_range(0..26) as u8)) as char;
+            format!("{}{}", c, i) // ensures uniqueness
+        })
+        .collect()
 }
 #[test]
 fn test_process_time_excl_master() {
     let (ta, mac) = setup();
     let version: u64 = 1;
-    let labels = vec!["A", "B", "C"];
+    let n = 10; // number of companies
+    let labels = generate_companies(n);
 
     // start measuring after master is ready
 
+    let start = Instant::now();
     // --- Child key derivation ---
     let mut child_sks = Vec::new();
     let mut child_pks = Vec::new();
@@ -37,9 +49,8 @@ fn test_process_time_excl_master() {
     }
 
     // --- Proof generation ---
-    let h: ark_bn254::G2Projective = utils::hash_to_g1(&mac);
-    let mut proofs: Vec<ark_bn254::G2Projective> = Vec::new();
-    let start = Instant::now();
+    let h: ark_bn254::G1Projective = utils::hash_to_g1(&mac);
+    let mut proofs: Vec<ark_bn254::G1Projective> = Vec::new();
     for sk in &child_sks {
         proofs.push(proof::single_proof(sk, &h));
     }

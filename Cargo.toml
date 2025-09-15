@@ -3,6 +3,5 @@ members = [
   "zkp-agg",
   "zkp-Master",
   "zkp-base"
-, "bench-plot"]
-
+]
   resolver = "3"

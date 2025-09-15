@@ -2,7 +2,7 @@ use ark_bn254::{G1Projective, G2Projective, Fr};
 use ark_std::rand::{rngs::StdRng, SeedableRng};
 use zk_master::{utils, master, child, proof, verify};
 
-fn setup() -> (master::MasterKey, Vec<Fr>, Vec<G1Projective>, String) {
+fn setup() -> (master::MasterKey, Vec<Fr>, Vec<G2Projective>, String) {
     let mut rng = StdRng::seed_from_u64(42u64);
     let version: u64 = 1;
 
@@ -26,7 +26,7 @@ fn test_full_set_verifies() {
     let (_ta, child_sks, child_pks, mac) = setup();
     let h = utils::hash_to_g1(&mac);
 
-    let mut proofs: Vec<G2Projective> = Vec::new();
+    let mut proofs: Vec<G1Projective> = Vec::new();
     for sk in &child_sks {
         proofs.push(proof::single_proof(sk, &h));
     }
@@ -44,7 +44,7 @@ fn test_revoked_child_does_not_verify() {
     let h = utils::hash_to_g1(&mac);
 
     // Proofs for all children A,B,C
-    let mut proofs: Vec<G2Projective> = Vec::new();
+    let mut proofs: Vec<G1Projective> = Vec::new();
     for sk in &child_sks {
         proofs.push(proof::single_proof(sk, &h));
     }
@@ -52,7 +52,7 @@ fn test_revoked_child_does_not_verify() {
 
     // Active set excludes A → only B, C
     let labels_active = vec!["B", "C"];
-    let mut pks_active: Vec<G1Projective> = Vec::new();
+    let mut pks_active: Vec<G2Projective> = Vec::new();
     for lab in &labels_active {
         let ck = child::derive_child(&ta, lab, version);
         pks_active.push(ck.pk_child);
@@ -71,10 +71,10 @@ fn test_add_set_verifies() {
     let (_ta, _child_sks, _child_pks, mac) = setup();
     let h = utils::hash_to_g1(&mac);
 
-    let mut proofs: Vec<G2Projective> = Vec::new();
+    let mut proofs: Vec<G1Projective> = Vec::new();
     let labels = vec!["A", "B", "C", "D"];
     let version = 1;
-    let mut pks_active: Vec<G1Projective> = Vec::new();
+    let mut pks_active: Vec<G2Projective> = Vec::new();
     for lab in &labels {
         let ck = child::derive_child(&_ta, lab, version);
         pks_active.push(ck.pk_child);

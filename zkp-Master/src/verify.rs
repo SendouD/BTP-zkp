@@ -3,8 +3,8 @@ use ark_ec::{pairing::Pairing, Group};
 use ark_ff::Zero;
 
 /// Aggregate public keys: sum of child public keys
-pub fn aggregate_pks(pks: &[G1Projective]) -> G1Projective {
-    let mut acc = G1Projective::zero();
+pub fn aggregate_pks(pks: &[G2Projective]) -> G2Projective {
+    let mut acc = G2Projective::zero();
     for pk in pks {
         acc += pk;
     }
@@ -12,14 +12,14 @@ pub fn aggregate_pks(pks: &[G1Projective]) -> G1Projective {
 }
 
 /// Verify pairing: e(g, Πagg) == e(pkagg, h)
-pub fn verify(h:&G2Projective,agg_proof: &G2Projective, agg_pk: &G1Projective) -> bool {
-    let a_proof = G2Affine::from(*agg_proof);
-    let a_g = G1Affine::from(G1Projective::generator());
-    let a_h = G2Affine::from(*h);
-    let a_pk = G1Affine::from(*agg_pk);
+pub fn verify(h:&G1Projective,agg_proof: &G1Projective, agg_pk: &G2Projective) -> bool {
+    let a_proof = G1Affine::from(*agg_proof);
+    let a_g = G2Affine::from(G2Projective::generator());
+    let a_h = G1Affine::from(*h);
+    let a_pk = G2Affine::from(*agg_pk);
 
-    let left = Bn254::pairing(&a_g, &a_proof);
-    let right = Bn254::pairing(&a_pk, &a_h);
+    let left = Bn254::pairing( &a_proof, &a_g);
+    let right = Bn254::pairing( &a_h, &a_pk);
 
     left == right
 }

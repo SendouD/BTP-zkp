@@ -13,9 +13,9 @@
         Fr::from_le_bytes_mod_order(&hash)
     }
     
-    pub fn hash_to_g1(mac: &str) -> G2Projective {
+    pub fn hash_to_g1(mac: &str) -> G1Projective {
         let scalar = hash_mac_to_scalar(mac);
-        G2Projective::generator().mul(scalar)
+        G1Projective::generator().mul(scalar)
     }
     
     pub fn instantiate_truck(mac: &str, companies: &[&str]) {
@@ -26,7 +26,7 @@
         }
     }
     
-    pub fn generate_keys(companies: &[&str], rng: &mut StdRng) -> (Vec<Fr>, Vec<G1Affine>, std::time::Duration) {
+    pub fn generate_keys(companies: &[&str], rng: &mut StdRng) -> (Vec<Fr>, Vec<G2Affine>, std::time::Duration) {
         println!("\n2. Key Generation:");
         let start = Instant::now();
         let mut sks = Vec::new();
@@ -34,7 +34,7 @@
     
         for company in companies {
             let sk = Fr::rand(rng);
-            let pk = G1Affine::from(G1Projective::generator().mul(sk));
+            let pk = G2Affine::from(G2Projective::generator().mul(sk));
             println!("=> Generate key pair between the truck and company {} for the \"MAC address\";", company);
             sks.push(sk);
             pks.push(pk);
@@ -45,11 +45,11 @@
         (sks, pks, duration)
     }
 
-    pub fn generate_zkps(h: &G2Projective, sks: &[Fr], companies: &[&str]) -> Vec<G2Projective> {
+    pub fn generate_zkps(h: &G1Projective, sks: &[Fr], _companies: &[&str]) -> Vec<G1Projective> {
         println!("\n3. ZKP Generation:");
         let mut sigmas = Vec::new();
     
-        for (i, sk) in sks.iter().enumerate() {
+        for (_i, sk) in sks.iter().enumerate() {
             let sigma = h.mul(*sk);
             sigmas.push(sigma);
         }
@@ -58,34 +58,34 @@
     }
 
 
-    pub fn aggregate_proof(sigmas: &[G2Projective]) -> G2Affine {
+    pub fn aggregate_proof(sigmas: &[G1Projective]) -> G1Affine {
         println!("\n4. Proof Aggregation:");
-        let mut agg = G2Projective::from(sigmas[0]);
+        let mut agg = G1Projective::from(sigmas[0]);
         for sigma in sigmas.iter().skip(1) {
             agg += sigma;
         }
-        let result = G2Affine::from(agg);
+        let result = G1Affine::from(agg);
         println!("=> Aggregate the individual ZKPs into one ZKP;");
         result
     }
-    
-    pub fn aggregate_verification_keys(pks: &[G1Affine]) -> G1Affine {
+
+    pub fn aggregate_verification_keys(pks: &[G2Affine]) -> G2Affine {
         println!("\n5. Verification Key Aggregation:");
-        let mut agg = G1Projective::from(pks[0]);
+        let mut agg = G2Projective::from(pks[0]);
         for pk in pks.iter().skip(1) {
             agg += pk;
         }
-        let result = G1Affine::from(agg);
+        let result = G2Affine::from(agg);
         println!("=> Generate and aggregate verification keys for the \"MAC address\";");
         result
     }
-    
-    pub fn verify_zkp(h: &G2Projective, sigma: &G2Affine, pk_agg: &G1Affine) -> bool {
+
+    pub fn verify_zkp(h: &G1Projective, sigma: &G1Affine, pk_agg: &G2Affine) -> bool {
         println!("\n6. ZKP Verification:");
-        let h_affine = G2Affine::from(*h);
-        let g1 = G1Affine::from(G1Projective::generator());
-        let lhs = Bn254::pairing(g1, *sigma);
-        let rhs = Bn254::pairing(*pk_agg, h_affine);
+        let h_affine = G1Affine::from(*h);
+        let g1 = G2Affine::from(G2Projective::generator());
+        let lhs = Bn254::pairing( *sigma,g1);
+        let rhs = Bn254::pairing( h_affine, *pk_agg);
         let result = lhs == rhs;
         println!("=> Verify the aggregated ZKP for the \"MAC address\" : {}", result);
         result

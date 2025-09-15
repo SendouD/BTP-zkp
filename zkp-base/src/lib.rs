@@ -45,7 +45,7 @@ pub fn verify_zkp(h: &G1Projective, sigma: &G1Affine, pk: &G2Affine, company: &s
 
     let h_affine = G1Affine::from(*h);
     let g2 = G2Affine::from(G2Projective::generator());
-    let lhs = Bn254::pairing(*sigma, g2);
+    let lhs = Bn254::pairing( *sigma,g2);
     let rhs = Bn254::pairing(h_affine, *pk);
     let result = lhs == rhs;
 

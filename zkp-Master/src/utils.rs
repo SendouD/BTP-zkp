@@ -1,4 +1,4 @@
-use ark_bn254::{Fr, G2Projective};
+use ark_bn254::{Fr, G1Projective};
 use sha2::{Digest, Sha256};
 use ark_ff::PrimeField;
 use ark_ec::Group;
@@ -19,7 +19,7 @@ fn hash_mac_to_scalar(mac: &str) -> Fr {
         Fr::from_le_bytes_mod_order(&hash)
 }
    
-pub fn hash_to_g1(mac: &str) -> G2Projective {
+pub fn hash_to_g1(mac: &str) -> G1Projective {
         let scalar = hash_mac_to_scalar(mac);
-        G2Projective::generator().mul(scalar)
+        G1Projective::generator().mul(scalar)
     }
